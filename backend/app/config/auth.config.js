@@ -1,3 +1,3 @@
 module.exports = {
-  secret: "lhstech-secret-key",
+  secret: "lhs-secret-key"
 };

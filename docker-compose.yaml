@@ -3,50 +3,46 @@ version: "3.8"
 
 # services : is a list of our container
 services:
-  # name is optional for our mongodb
-  mongodb:
-    # since mongo is an offical image we can use it.
-    image: "mongo"
+  # name is optional for our postgresdb
+  postgres:
+    # since postgres is an offical image we can use it.
+    image: postgres
 
-    # the port that we want to publish for mongodb
+    # environment
+    environment:
+      POSTGRES_PASSWORD: "Postgres2022!"
+
+    # the port that we want to publish for postgres
     ports:
-      - "27017:27017"
+      - "1432:1432"
 
-    # our mongodb depends on volume to keep the data alive.
+    # our postgresdb depends on volume to keep the data alive.
     volumes:
       - data:/data/db
-
-    # our environment variable
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: "myplanner"
-      MONGO_INITDB_ROOT_PASSWORD: "planner"
-      MONGO_INITDB_DATABASE: "planner_db"
 
     networks:
       - node-webapp-network
 
   # name is optional for our backend
-  backend:
+  back-end:
     # to build an image based on Dockerfile
     # it looks in this folder to find Dockerfile to build an image
     build: ./backend
     # the port that we want to publish for backend
     ports:
-      - "8080:8080"
+      - "8088:8088"
     restart: always
 
-    # depends_on means it will start our backend container once mongo-container is  up and running.
-    links:
-      - mongodb
+    # depends_on means it will start our backend container once postgres-container is  up and running.
     depends_on:
-      - mongodb
+      - postgres
     environment:
-      WAIT_HOSTS: mongodb:27017
+      WAIT_HOSTS: postgres:1432
     networks:
       - node-webapp-network
 
   # name is optional for our frontend
-  frontend:
+  front-end:
     # to build an image based on Dockerfile
     # it looks in this folder to find Dockerfile to build an image
     build: ./frontend
@@ -63,13 +59,15 @@ services:
 
     # it will start our frontend container once backend-container is  up and running.
     depends_on:
-      - backend
+      - back-end
+    networks:
+      - node-webapp-network      
 
 # declare the volumes name that our app is using.
 volumes:
   data:
 
-# declare the shared network to allow backend to talk to mongodb
+# declare the shared network to allow backend to talk to postgresdb
 networks:
   node-webapp-network:
     driver: bridge
